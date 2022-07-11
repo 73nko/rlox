@@ -1,7 +1,7 @@
 pub struct Scanner {}
 
 impl Scanner {
-    pub fn new(input: &str) -> Scanner {
+    pub fn new(_input: &str) -> Scanner {
         Scanner {}
     }
 

@@ -46,9 +46,9 @@ fn main() -> Result<()> {
     let args: Vec<String> = env::args().collect();
 
     match args.len() {
-        i if i >= 2 => panic!("Usage: cargo run <filename>"),
-        i if i == 2 => run_file(&args[1])?,
-        _ => todo!("run prompt command"),
+        1 => run_prompt()?,
+        2 => run_file(&args[1])?,
+        _ => panic!("Usage: cargo run <filename>"),
     };
 
     Ok(())
