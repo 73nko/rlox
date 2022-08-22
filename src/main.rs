@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+mod error;
 mod scanner;
 
 use anyhow::{Context, Ok, Result};
@@ -9,11 +10,11 @@ use std::fs;
 use std::io;
 
 fn run(input: &str) {
-    let scanner = Scanner::new(input);
-    let tokens = scanner.tokens();
+    let mut scanner = Scanner::new(input.to_string());
+    let tokens = scanner.scan_tokens();
 
     for token in tokens {
-        println!("{}", token);
+        println!("{:?}", token);
     }
 }
 
