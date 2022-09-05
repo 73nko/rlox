@@ -1,56 +1,52 @@
-#![allow(dead_code)]
+extern crate rlox;
 
-mod error;
-mod scanner;
-
-use anyhow::{Context, Ok, Result};
-use scanner::Scanner;
 use std::env;
 use std::fs;
-use std::io;
+use std::io::{stdin, BufRead, BufReader};
+use std::rc::Rc;
 
-fn run(input: &str) {
-    let mut scanner = Scanner::new(input.to_string());
-    let tokens = scanner.scan_tokens();
+use rlox::compiler::Compiler;
+use rlox::vm;
 
-    for token in tokens {
-        println!("{:?}", token);
+fn main() -> vm::Result {
+    let mut args = env::args();
+
+    match args.len() {
+        1 => repl(),
+        2 => run_file(&(args.nth(1).unwrap())),
+        _ => usage(),
     }
 }
 
-fn run_file(filename: &str) -> Result<()> {
-    let content = fs::read_to_string(filename)
-        .with_context(|| format!("Failed to read file from {}", filename))?;
+fn repl() -> vm::Result {
+    let input = BufReader::new(stdin());
+    print_cursor(1);
 
-    println!("{}", content);
+    let mut vm = vm::VM::new();
+
+    for (line, src) in input.lines().enumerate() {
+        let source = Rc::new(src?);
+        let chunk = Compiler::new(&source, line + 1).compile()?;
+        if let Err(e) = vm.interpret(&chunk) {
+            eprintln!("{:?}", e);
+        }
+        print_cursor(line + 2);
+    }
+
     Ok(())
 }
 
-fn run_prompt() -> Result<()> {
-    loop {
-        println!("> ");
-        let mut raw_input = String::new();
-
-        io::stdin()
-            .read_line(&mut raw_input)
-            .expect("Failed to read line");
-
-        let input = raw_input.trim();
-        if input.is_empty() {
-            continue;
-        }
-        run(input);
-    }
+fn print_cursor(line: usize) {
+    eprint!("[{:03}]> ", line)
 }
 
-fn main() -> Result<()> {
-    let args: Vec<String> = env::args().collect();
+fn run_file(path: &str) -> vm::Result {
+    let source = Rc::new(fs::read_to_string(path)?);
+    let chunk = Compiler::new(&source, 1).compile()?;
+    vm::VM::new().interpret(&chunk)
+}
 
-    match args.len() {
-        1 => run_prompt()?,
-        2 => run_file(&args[1])?,
-        _ => panic!("Usage: cargo run <filename>"),
-    };
-
+fn usage() -> vm::Result {
+    eprintln!("Usage: rlox [path]");
     Ok(())
 }
