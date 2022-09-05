@@ -8,12 +8,18 @@ To run the interpreter, simply clone the repository and use cargo to build and r
 
 To run a REPL:
 
-```sh
+```bash
 cargo run
 ```
 
 To Run a file:
 
-```sh
+```bash
 cargo run [filename]
+```
+
+### unit tests
+
+```bash
+cargo test --verbose
 ```
