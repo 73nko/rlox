@@ -6,25 +6,3 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-lazy_static = "1.0.0"
-byteorder = "1"
-
-[features]
-debug-destructors = []
-debug-constructors = []
-debug-define = []
-debug-assign = []
-debug-timings = []
-debug-instructions = []
-debug = [
-  "debug-destructors",
-  "debug-constructors",
-  "debug-define",
-  "debug-assign",
-  "debug-timings",
-  "debug-instructions",
-]
-
-[[bin]]
-name = "rlox"
-doc = false

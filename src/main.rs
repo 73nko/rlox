@@ -1,14 +1,9 @@
-extern crate rlox;
-
-use std::env;
-use std::fs;
-use std::io::{stdin, BufRead, BufReader};
+use std::io::{stdin, BufRead, BufReader, Error};
 use std::rc::Rc;
+use std::result::Result;
+use std::{env, fs};
 
-use rlox::compiler::Compiler;
-use rlox::vm;
-
-fn main() -> vm::Result {
+fn main() -> Result<(), Error> {
     let mut args = env::args();
 
     match args.len() {
@@ -18,19 +13,22 @@ fn main() -> vm::Result {
     }
 }
 
-fn repl() -> vm::Result {
+fn run_file(path: &str) -> Result<(), Error> {
+    let source = Rc::new(fs::read_to_string(path)?);
+
+    println!("{:?}", source);
+    Ok(())
+}
+
+fn repl() -> Result<(), Error> {
     let input = BufReader::new(stdin());
     print_cursor(1);
 
-    let mut vm = vm::VM::new();
-
     for (line, src) in input.lines().enumerate() {
         let source = Rc::new(src?);
-        let chunk = Compiler::new(&source, line + 1).compile()?;
-        if let Err(e) = vm.interpret(&chunk) {
-            eprintln!("{:?}", e);
-        }
-        print_cursor(line + 2);
+
+        print_cursor(line + 1);
+        println!("{}", source);
     }
 
     Ok(())
@@ -40,13 +38,7 @@ fn print_cursor(line: usize) {
     eprint!("[{:03}]> ", line)
 }
 
-fn run_file(path: &str) -> vm::Result {
-    let source = Rc::new(fs::read_to_string(path)?);
-    let chunk = Compiler::new(&source, 1).compile()?;
-    vm::VM::new().interpret(&chunk)
-}
-
-fn usage() -> vm::Result {
+fn usage() -> Result<(), Error> {
     eprintln!("Usage: rlox [path]");
     Ok(())
 }
