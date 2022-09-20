@@ -1,9 +1,11 @@
-use std::io::{stdin, BufRead, BufReader, Error};
-use std::rc::Rc;
+use std::io::{stdin, BufRead, BufReader};
 use std::result::Result;
 use std::{env, fs};
 
-fn main() -> Result<(), Error> {
+use rlox::error::LoxError;
+use rlox::scanner::Scanner;
+
+fn main() -> Result<(), LoxError> {
     let mut args = env::args();
 
     match args.len() {
@@ -13,22 +15,37 @@ fn main() -> Result<(), Error> {
     }
 }
 
-fn run_file(path: &str) -> Result<(), Error> {
-    let source = Rc::new(fs::read_to_string(path)?);
+fn run_file(path: &str) -> Result<(), LoxError> {
+    let source = fs::read_to_string(path);
 
-    println!("{:?}", source);
+    match source {
+        Ok(source) => {
+            let mut scanner = Scanner::new(source);
+            let tokens = scanner.scan_tokens();
+        }
+        Err(err) => {
+            println!("Error: {}", err);
+        }
+    }
     Ok(())
 }
 
-fn repl() -> Result<(), Error> {
+fn repl() -> Result<(), LoxError> {
     let input = BufReader::new(stdin());
     print_cursor(1);
 
     for (line, src) in input.lines().enumerate() {
-        let source = Rc::new(src?);
+        let source = src;
 
-        print_cursor(line + 1);
-        println!("{}", source);
+        match source {
+            Ok(source) => {
+                println!("{:?}", source);
+                print_cursor(line + 1);
+            }
+            Err(err) => {
+                println!("Error: {}", err);
+            }
+        }
     }
 
     Ok(())
@@ -38,7 +55,7 @@ fn print_cursor(line: usize) {
     eprint!("[{:03}]> ", line)
 }
 
-fn usage() -> Result<(), Error> {
+fn usage() -> Result<(), LoxError> {
     eprintln!("Usage: rlox [path]");
     Ok(())
 }
