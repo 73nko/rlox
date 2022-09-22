@@ -20,8 +20,7 @@ fn run_file(path: &str) -> Result<(), LoxError> {
 
     match source {
         Ok(source) => {
-            let mut scanner = Scanner::new(source);
-            let tokens = scanner.scan_tokens();
+            run(source);
         }
         Err(err) => {
             println!("Error: {}", err);
@@ -39,13 +38,22 @@ fn repl() -> Result<(), LoxError> {
 
         match source {
             Ok(source) => {
-                println!("{:?}", source);
+                run(source);
                 print_cursor(line + 1);
             }
-            Err(err) => {
-                println!("Error: {}", err);
-            }
+            Err(err) => { /* Ignore error*/ }
         }
+    }
+
+    Ok(())
+}
+
+fn run(source: String) -> Result<(), LoxError> {
+    let mut scanner = Scanner::new(source);
+    let tokens = scanner.scan_tokens()?;
+
+    for token in tokens {
+        println!("{:?}", token);
     }
 
     Ok(())
