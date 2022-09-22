@@ -82,6 +82,7 @@ impl Scanner {
             '=' => self.matches_or('=', TokenType::EqualEqual, TokenType::Equal),
             '<' => self.matches_or('=', TokenType::LessEqual, TokenType::Less),
             '>' => self.matches_or('=', TokenType::GreaterEqual, TokenType::Greater),
+            '"' => self.string()?,
             '/' => {
                 if self.matches('/') {
                     self.consume_line_comment();
@@ -111,6 +112,29 @@ impl Scanner {
         let s: String = self.source[self.start..self.current].iter().collect();
         self.tokens
             .push(Token::new(token_type, s, literal, self.line));
+    }
+
+    fn string(&mut self) -> Result<(), LoxError> {
+        let mut escaped = false;
+
+        while !self.is_at_end() {
+            match self.advance() {
+                '"' if !escaped => {
+                    let value = self.source[self.start + 1..self.current - 1]
+                        .iter()
+                        .collect();
+                    self.add_token_object(TokenType::String, Some(Object::Str(value)));
+                    return Ok(());
+                }
+                '\\' if !escaped => escaped = true,
+                _ => escaped = false,
+            };
+        }
+
+        Err(LoxError::error(
+            self.line,
+            "Unterminated string".to_string(),
+        ))
     }
 
     fn matches(&mut self, c: char) -> bool {
