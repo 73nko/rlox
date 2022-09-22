@@ -126,6 +126,7 @@ impl Scanner {
                     self.add_token_object(TokenType::String, Some(Object::Str(value)));
                     return Ok(());
                 }
+                '\n' => self.line += 1,
                 '\\' if !escaped => escaped = true,
                 _ => escaped = false,
             };
