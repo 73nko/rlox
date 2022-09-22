@@ -32,12 +32,12 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>) -> Token {
+    pub fn new(ttype: TokenType, lexeme: String, literal: Option<Object>, line: usize) -> Token {
         Token {
             ttype,
             lexeme,
             literal,
-            line: 0,
+            line,
         }
     }
 

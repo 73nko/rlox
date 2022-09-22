@@ -89,7 +89,8 @@ impl Scanner {
                     self.add_token(TokenType::Slash);
                 }
             }
-            ' ' => {}
+            ' ' | '\r' | '\t' => {}
+            '\n' => self.line += 1,
             _ => return Err(LoxError::error(self.line, "Unexpected token".to_string())),
         }
 
@@ -108,7 +109,8 @@ impl Scanner {
 
     fn add_token_object(&mut self, token_type: TokenType, literal: Option<Object>) {
         let s: String = self.source[self.start..self.current].iter().collect();
-        self.tokens.push(Token::new(token_type, s, literal));
+        self.tokens
+            .push(Token::new(token_type, s, literal, self.line));
     }
 
     fn matches(&mut self, c: char) -> bool {
