@@ -41,7 +41,7 @@ fn repl() -> Result<(), LoxError> {
                 run(source);
                 print_cursor(line + 1);
             }
-            Err(err) => { /* Ignore error*/ }
+            Err(_err) => { /* Ignore error*/ }
         }
     }
 

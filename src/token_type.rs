@@ -42,4 +42,32 @@ pub enum TokenType {
     Var,
     While,
     Eof,
+    Break,
+}
+
+impl TokenType {
+    pub fn reserved(ident: &str) -> Option<TokenType> {
+        use self::TokenType::*;
+
+        match ident {
+            "and" => Some(And),
+            "class" => Some(Class),
+            "else" => Some(Else),
+            "false" => Some(False),
+            "for" => Some(For),
+            "fun" => Some(Fun),
+            "if" => Some(If),
+            "nil" => Some(Nil),
+            "or" => Some(Or),
+            "print" => Some(Print),
+            "return" => Some(Return),
+            "super" => Some(Super),
+            "this" => Some(This),
+            "true" => Some(True),
+            "var" => Some(Var),
+            "while" => Some(While),
+            "break" => Some(Break),
+            _ => None,
+        }
+    }
 }

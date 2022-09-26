@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{
     error::LoxError,
     token::{Object, Token},
@@ -11,16 +13,20 @@ pub struct Scanner {
     start: usize,
     current: usize,
     line: usize,
+    keywords: HashMap<String, TokenType>,
 }
 
 impl Scanner {
     pub fn new(source: String) -> Self {
+        let mut keywords = HashMap::new();
+
         Scanner {
             source: source.chars().collect(),
             tokens: Vec::new(),
             start: 0,
             current: 0,
             line: 1,
+            keywords,
         }
     }
 
@@ -60,6 +66,14 @@ impl Scanner {
         }
     }
 
+    fn peek_next(&self) -> char {
+        if let Some(ret) = self.source.get(self.current + 1) {
+            *ret
+        } else {
+            '\0'
+        }
+    }
+
     fn consume_line_comment(&mut self) {
         while !self.is_at_end() && self.peek() != '\n' {
             self.advance();
@@ -83,6 +97,8 @@ impl Scanner {
             '<' => self.matches_or('=', TokenType::LessEqual, TokenType::Less),
             '>' => self.matches_or('=', TokenType::GreaterEqual, TokenType::Greater),
             '"' => self.string()?,
+            d if d.is_ascii_digit() => self.number()?,
+            i if i.is_ascii_alphabetic() || i == '_' => self.identifier()?,
             '/' => {
                 if self.matches('/') {
                     self.consume_line_comment();
@@ -98,6 +114,9 @@ impl Scanner {
         Ok(())
     }
 
+    fn value(&self) -> String {
+        self.source[self.start..self.current].iter().collect()
+    }
     fn advance(&mut self) -> char {
         let result = self.source.get(self.current).unwrap();
         self.current += 1;
@@ -109,7 +128,7 @@ impl Scanner {
     }
 
     fn add_token_object(&mut self, token_type: TokenType, literal: Option<Object>) {
-        let s: String = self.source[self.start..self.current].iter().collect();
+        let s: String = self.value();
         self.tokens
             .push(Token::new(token_type, s, literal, self.line));
     }
@@ -136,6 +155,36 @@ impl Scanner {
             self.line,
             "Unterminated string".to_string(),
         ))
+    }
+
+    fn number(&mut self) -> Result<(), LoxError> {
+        while char::is_ascii_digit(&self.peek()) {
+            self.advance();
+        }
+
+        if self.peek() == '.' && char::is_ascii_digit(&self.peek_next()) {
+            self.advance();
+            while char::is_ascii_digit(&self.peek()) {
+                self.advance();
+            }
+        }
+
+        let number = self.value().parse::<f64>().unwrap();
+        self.add_token_object(TokenType::Number, Some(Object::Num(number)));
+
+        Ok(())
+    }
+
+    fn identifier(&mut self) -> Result<(), LoxError> {
+        while char::is_ascii_alphanumeric(&self.peek()) {
+            self.advance();
+        }
+        if let Some(typ) = TokenType::reserved(&self.value()) {
+            self.add_token(typ);
+        } else {
+            self.add_token(TokenType::Identifier);
+        }
+        Ok(())
     }
 
     fn matches(&mut self, c: char) -> bool {

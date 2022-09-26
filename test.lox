@@ -2,3 +2,6 @@
 ((  )) {} // grouping of stuff
 !**/ = <> <= == // Operators
 "hello world"
+num = 11.12
+var _value = "hello world"
+if _value == "hello world" { return "success" }
