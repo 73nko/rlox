@@ -10,4 +10,4 @@ var /*
  This is a comment with
  More than one line
 */ x
-var /* this is a comment */ = "hello world"
+var /* this is a comment /* testing */ whatever other text */ = "hello world"

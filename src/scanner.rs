@@ -86,6 +86,9 @@ impl Scanner {
                 '*' if self.matches('/') => {
                     return Ok(());
                 }
+                '/' if self.matches('*') => {
+                    self.consume_line_comment();
+                }
                 '\n' => self.line += 1,
                 _ => {}
             };
