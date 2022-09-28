@@ -5,3 +5,9 @@
 num = 11.12
 var _value = "hello world"
 if _value == "hello world" { return "success" }
+
+var /*
+ This is a comment with
+ More than one line
+*/ x
+var /* this is a comment */ = "hello world"

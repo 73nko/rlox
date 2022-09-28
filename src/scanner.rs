@@ -80,6 +80,23 @@ impl Scanner {
         }
     }
 
+    fn consume_block_comment(&mut self) -> Result<(), LoxError> {
+        while !self.is_at_end() {
+            match self.advance() {
+                '*' if self.matches('/') => {
+                    return Ok(());
+                }
+                '\n' => self.line += 1,
+                _ => {}
+            };
+        }
+
+        Err(LoxError::error(
+            self.line,
+            "Unterminated block comment".to_string(),
+        ))
+    }
+
     fn scan_token(&mut self) -> Result<(), LoxError> {
         match self.advance() {
             '(' => self.add_token(TokenType::LeftParen),
@@ -102,6 +119,8 @@ impl Scanner {
             '/' => {
                 if self.matches('/') {
                     self.consume_line_comment();
+                } else if self.matches('*') {
+                    self.consume_block_comment()?;
                 } else {
                     self.add_token(TokenType::Slash);
                 }
