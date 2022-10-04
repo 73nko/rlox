@@ -1,0 +1,9 @@
+use crate::error::*;
+use crate::token::*;
+
+pub enum Expr {
+    Binary(BinaryExpr),
+    Grouping(GroupingExpr),
+    Literal(LiteralExpr),
+    Unary(UnaryExpr),
+}

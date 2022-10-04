@@ -3,5 +3,12 @@
 version = 3
 
 [[package]]
+name = "generate-ast"
+version = "0.1.0"
+dependencies = [
+ "rlox",
+]
+
+[[package]]
 name = "rlox"
 version = "0.1.0"
