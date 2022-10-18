@@ -12,8 +12,8 @@ name = "rlox"
 path = "src/main.rs"
 
 
-
 [workspace.package]
+
 edition = "2021"
 authors = ["Álex Pérez <me@alejandroperez.dev>"]
 description = "RLox is an interpreter for the Lox programming language. The language was designed by Robert Nystrom "
@@ -24,3 +24,4 @@ license = "MIT OR Apache-2.0"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+generate_ast = {path = "./generate-ast"}

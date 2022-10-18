@@ -2,12 +2,13 @@ use std::io::{stdin, BufRead, BufReader};
 use std::result::Result;
 use std::{env, fs};
 
+use generate_ast::build::generate_ast;
 use rlox::error::LoxError;
 use rlox::scanner::Scanner;
 
 fn main() -> Result<(), LoxError> {
     let mut args = env::args();
-
+    generate_ast("src");
     match args.len() {
         1 => repl(),
         2 => run_file(&(args.nth(1).unwrap())),

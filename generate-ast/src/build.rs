@@ -1,5 +1,4 @@
 use std::{
-    env::args,
     fs::File,
     io::{self, Write},
 };
@@ -11,15 +10,7 @@ struct TreeType {
     fields: Vec<String>,
 }
 
-fn main() -> io::Result<()> {
-    let args: Vec<String> = args().collect();
-
-    if args.len() != 2 {
-        eprintln!("Usage: generate-ast <output-directory>");
-    }
-
-    let output_directory = args.get(1).unwrap();
-
+pub fn generate_ast(output_directory: &str) -> io::Result<()> {
     define_ast(
         output_directory,
         "Expr",
@@ -35,7 +26,7 @@ fn main() -> io::Result<()> {
 }
 
 fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::Result<()> {
-    let path = format!("{output_directory}/{}", base_name.to_lowercase());
+    let path = format!("{output_directory}/{}.rs", base_name.to_lowercase());
     let mut file = File::create(&path)?;
 
     let mut tree_types = Vec::new();
@@ -62,11 +53,49 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
     }
 
     writeln!(file, "pub enum {base_name} {{")?;
-    for t in tree_types {
+    for t in &tree_types {
         writeln!(file, "\t{}({}),", t.base_class_name, t.class_name)?;
     }
 
     writeln!(file, "}}")?;
+
+    for t in &tree_types {
+        writeln!(file, "pub struct {} {{", t.class_name)?;
+        for f in t.fields.iter() {
+            writeln!(file, "\t{f},")?;
+        }
+        writeln!(file, "}}\n")?;
+    }
+
+    writeln!(file, "pub trait ExprVisitor<T> {{")?;
+
+    for t in &tree_types {
+        writeln!(
+            file,
+            "\t fn visit_{}_{}(&self, expr: &{}) -> Result<T, LoxError>;",
+            t.base_class_name.to_lowercase(),
+            base_name.to_lowercase(),
+            t.class_name,
+        )?;
+    }
+    writeln!(file, "}}\n")?;
+
+    for t in &tree_types {
+        writeln!(file, "impl {} {{", t.class_name)?;
+        writeln!(
+            file,
+            "\tfn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError>{{",
+            t.class_name
+        )?;
+        writeln!(
+            file,
+            "\t\tvisitor.visit_{}_{}(self)",
+            t.base_class_name.to_lowercase(),
+            base_name.to_lowercase()
+        )?;
+        writeln!(file, "\t}}")?;
+        writeln!(file, "}}\n")?;
+    }
 
     Ok(())
 }

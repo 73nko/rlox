@@ -1,12 +1,5 @@
 [package]
-name = "generate-ast"
+name = "generate_ast"
 version = "0.1.0"
+edition = "2021"
 description = "Dissecting Rust Traits to Learn Their Secrets"
-
-[[bin]]
-name = "generate-ast"
-path = "src/main.rs"
-
-
-[dependencies]
-rlox = { path = ".." }
