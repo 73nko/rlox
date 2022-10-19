@@ -1,6 +1,6 @@
 [workspace]
 reesolver = "2"
-members = ["generate-ast"]
+members = ["generate-ast", "printer-ast"]
 
 [package]
 name = "rlox"

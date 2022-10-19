@@ -15,9 +15,9 @@ pub fn generate_ast(output_directory: &str) -> io::Result<()> {
         output_directory,
         "Expr",
         &[
-            "Binary   : Box<Expr> left, Token Operator, Box<Expr> right".to_string(),
+            "Binary   : Box<Expr> left, Token operator, Box<Expr> right".to_string(),
             "Grouping : Box<Expr> expression".to_string(),
-            "Literal  : Object value".to_string(),
+            "Literal  : Option<Object> value".to_string(),
             "Unary    : Token operator, Box<Expr> right".to_string(),
         ],
     )?;
@@ -31,6 +31,7 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
 
     let mut tree_types = Vec::new();
 
+    // Create imports
     writeln!(file, "use crate::error::*;")?;
     writeln!(file, "use crate::token::*;\n")?;
 
@@ -42,7 +43,7 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
 
         for arg in arg_split {
             let (t2type, name) = arg.trim().split_once(' ').unwrap();
-            fields.push(format!("{} : {}", name, t2type));
+            fields.push(format!("pub {} : {}", name, t2type));
         }
 
         tree_types.push(TreeType {
@@ -52,6 +53,7 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
         });
     }
 
+    // Create Enum Expr
     writeln!(file, "pub enum {base_name} {{")?;
     for t in &tree_types {
         writeln!(file, "\t{}({}),", t.base_class_name, t.class_name)?;
@@ -59,6 +61,33 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
 
     writeln!(file, "}}")?;
 
+    // Implements accept fn in Expr
+    writeln!(file, "impl Expr {{")?;
+    writeln!(
+        file,
+        "\tpub fn accept<T>(&self, expr_visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError> {{"
+    )?;
+    writeln!(file, "\t\tmatch self {{")?;
+    for t in &tree_types {
+        let initials = t
+            .base_class_name
+            .chars()
+            .next()
+            .unwrap()
+            .to_lowercase()
+            .to_string()
+            + "e";
+        writeln!(
+            file,
+            "\t\t\tExpr::{}({}) => {}.accept(expr_visitor),",
+            t.base_class_name, initials, initials
+        )?;
+    }
+    writeln!(file, "\t\t}}")?;
+    writeln!(file, "\t}}")?;
+    writeln!(file, "}}")?;
+
+    // Create Expression structs
     for t in &tree_types {
         writeln!(file, "pub struct {} {{", t.class_name)?;
         for f in t.fields.iter() {
@@ -67,6 +96,7 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
         writeln!(file, "}}\n")?;
     }
 
+    // Create ExprVisitor trait
     writeln!(file, "pub trait ExprVisitor<T> {{")?;
 
     for t in &tree_types {
@@ -80,12 +110,12 @@ fn define_ast(output_directory: &str, base_name: &str, types: &[String]) -> io::
     }
     writeln!(file, "}}\n")?;
 
+    // Implement accept fn in every expression
     for t in &tree_types {
         writeln!(file, "impl {} {{", t.class_name)?;
         writeln!(
             file,
-            "\tfn accept<T>(&self, visitor: &dyn {}Visitor<T>) -> Result<T, LoxError>{{",
-            t.class_name
+            "\tfn accept<T>(&self, visitor: &dyn ExprVisitor<T>) -> Result<T, LoxError>{{"
         )?;
         writeln!(
             file,
